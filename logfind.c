@@ -17,7 +17,7 @@ char *rtrim(char *s) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("Usage: %s [-o , -a] pattern [pattern ...]\n", argv[0]);
+        printf("Usage: %s [-o|-a] pattern [pattern ...]\n", argv[0]);
         return 1;
     }
 
@@ -51,14 +51,16 @@ int main(int argc, char **argv) {
         FILE *newfile = fopen(files[j], "r");
         if (newfile == NULL) {
             perror("Error opening log file");
-            continue;  
+            continue;  // Skip this file and continue with the next one
         }
 
         char content[MAX_LINE_LENGTH];
         int found = 0;
+        int line_number = 0;
         while (fgets(content, sizeof(content), newfile) != NULL) {
+            line_number++;
             int match = and_flag ? 1 : 0;
-            for (int a = 2; a < argc; a++) {  
+            for (int a = 2; a < argc; a++) {  // Start from argv[2] to skip the flag
                 if (strstr(content, argv[a]) != NULL) {
                     if (or_flag) {
                         match = 1;
@@ -73,14 +75,13 @@ int main(int argc, char **argv) {
             }
             if (match) {
                 found = 1;
+                printf("Found in %s on line %d: %s \n", files[j], line_number, content);
                 break;
             }
         }
         fclose(newfile);
 
-        if (found) {
-            printf("Found in %s\n", files[j]);
-        } else {
+        if (!found) {
             printf("Not found in %s\n", files[j]);
         }
     }
